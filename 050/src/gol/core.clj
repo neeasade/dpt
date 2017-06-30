@@ -1,6 +1,16 @@
 (ns gol.core
   (:gen-class))
 
+(def startboard
+  [
+   [0 0 0 0 0]
+   [0 0 0 0 0]
+   [0 1 1 1 0]
+   [0 0 0 0 0]
+   [0 0 0 0 0]
+   ]
+  )
+
 (defn get-cell-state
   "get true/false in map - treat off map as false"
   [x y board]
@@ -54,16 +64,6 @@
   )
   )
 
-(def startboard
-  [
-    [0 0 0 0 0]
-    [0 0 0 0 0]
-    [0 1 1 1 0]
-    [0 0 0 0 0]
-    [0 0 0 0 0]
-  ]
-  )
-
 (defn convert-board [board]
   "Turn the starting board into bools"
   (into
@@ -95,19 +95,21 @@
   )
 
 (defn step [board]
-  (println "---------")
+  (print (str (char 27) "[2J")) ; clear screen
+  (print (str (char 27) "[;H")) ; move cursor to the top left corner of the screen
   (render-board board)
-  (println "---------")
-  (Thread/sleep 1000)
+  (Thread/sleep 500)
   (get-next-board board)
+  )
+
+(defn run [board]
+  (recur (step board)
+  )
   )
 
 (defn -main
   [& args]
-  (step
-   (step
-  (step (convert-board startboard))
- ))
+  (run
+   (convert-board startboard)
+   )
   )
-
-(-main)
