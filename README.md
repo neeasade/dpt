@@ -1,5 +1,5 @@
-## dpt-python
-A repo for me to practice python with https://better-dpt-roll.github.io/
+## dpt-clojure
+A repo for me to practice clojure with https://better-dpt-roll.github.io/
 
 First 5 rolls:
 - [ ] [082](https://better-dpt-roll.github.io/#82)
