@@ -31,11 +31,11 @@
   )
 
 (defn get-next-state
-  [x y board]
+  [x y current board]
   (case (count-live-neighbors x y board)
     0 false
     1 false
-    2 true
+    2 (and current true)
     3 true
     false
     )
@@ -56,9 +56,9 @@
 
 (def startboard
   [
-    [0 1 0 0 0]
-    [0 0 1 0 0]
-    [1 1 1 0 0]
+    [0 0 0 0 0]
+    [0 0 0 0 0]
+    [0 1 1 1 0]
     [0 0 0 0 0]
     [0 0 0 0 0]
   ]
@@ -87,7 +87,7 @@
      (into
       []
       (for [y (range 0 (count board))]
-        (get-next-state x y board)
+        (get-next-state x y (get (get board x) y)  board)
         )
       )
      )
@@ -95,7 +95,9 @@
   )
 
 (defn step [board]
+  (println "---------")
   (render-board board)
+  (println "---------")
   (Thread/sleep 1000)
   (get-next-board board)
   )
