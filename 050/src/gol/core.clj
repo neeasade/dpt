@@ -96,15 +96,16 @@
 
 (defn step [board]
   (render-board board)
-  (get-next-board board)
   (Thread/sleep 1000)
+  (get-next-board board)
   )
 
 (defn -main
   [& args]
   (step
+   (step
   (step (convert-board startboard))
-  )
+ ))
   )
 
-(println (-main))
+(-main)
