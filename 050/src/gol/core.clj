@@ -2,12 +2,42 @@
   (:gen-class))
 
 (def startboard
+  "
+  .....
+  .....
+  .XXX.
+  .....
+  .....
+  "
+  )
+
+(defn convert-board
+  "take board as string and convert to nested vector bools"
+  [input]
+  (vec
+   (map (fn [instring] (vec (into [] (map #(not= \. %) instring))))
+        (filter not-empty
+                (map clojure.string/trim
+                     (clojure.string/split input #"\n")
+                     )
+                )
+        )
+   )
+  )
+
+
+(defn get-surrounding-cells
+  "return the surrounding cells from x y"
+  [x y]
   [
-   [0 0 0 0 0]
-   [0 0 0 0 0]
-   [0 1 1 1 0]
-   [0 0 0 0 0]
-   [0 0 0 0 0]
+   [ (dec x) (dec y) ]
+   [ (dec x)  y ]
+   [ (dec x) (inc y) ]
+   [      x  (dec y)]
+   [      x  (inc y)]
+   [ (inc x) (dec y)]
+   [ (inc x)  y]
+   [ (inc x) (inc y)]
    ]
   )
 
@@ -20,27 +50,16 @@
 (defn count-live-neighbors
   "get a count of live neighbors for game of life"
   [x y board]
-  (count
-   (filter #(= % true)
-           (into []
-                 (map #(apply get-cell-state (conj % board))
-                      [
-                       [ (dec x) (dec y) ]
-                       [ (dec x) y ]
-                       [ (dec x) (inc y) ]
-                       [ x (dec y)]
-                       [ x (inc y)]
-                       [ (inc x) (dec y)]
-                       [ (inc x) y]
-                       [ (inc x) (inc y)]
-                       ]
-                      )
-                 )
-           )
+  (->>
+   (get-surrounding-cells x y)
+   (map #(apply get-cell-state (conj % board)))
+   (filter #(= % true))
+   count
    )
   )
 
 (defn get-next-state
+  "get the next state"
   [x y current board]
   (case (count-live-neighbors x y board)
     0 false
@@ -64,20 +83,6 @@
   )
   )
 
-(defn convert-board [board]
-  "Turn the starting board into bools"
-  (into
-   []
-   (for [row board]
-     (into
-      []
-      (for [cell row]
-        (not= cell 0)
-        )
-      )
-     )
-   )
-  )
 
 (defn get-next-board
 [board]
