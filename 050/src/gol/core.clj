@@ -1,6 +1,7 @@
 (ns gol.core
   (:gen-class))
 
+; this is an example - current program reads from file in this format.
 (def startboard
   "
   .....
@@ -18,13 +19,17 @@
    (map (fn [instring] (vec (into [] (map #(not= \. %) instring))))
         (filter not-empty
                 (map clojure.string/trim
-                     (clojure.string/split input #"\n")
+                     (clojure.string/split
+                      (clojure.string/replace
+                       input
+                       #"\r\n" "\n"
+                       )
+                      #"\n")
                      )
                 )
         )
    )
   )
-
 
 (defn get-surrounding-cells
   "return the surrounding cells from x y"
@@ -44,7 +49,9 @@
 (defn get-cell-state
   "get true/false in map - treat off map as false"
   [x y board]
-  (nth (nth board x []) y false)
+  (nth
+   (nth board x [])
+   y false)
   )
 
 (defn count-live-neighbors
@@ -91,7 +98,7 @@
    (for [x (range 0 (count board))]
      (into
       []
-      (for [y (range 0 (count board))]
+      (for [y (range 0 (count (nth board 0)))]
         (get-next-state x y (get (get board x) y)  board)
         )
       )
@@ -112,9 +119,11 @@
   )
   )
 
+;; some good example inputs can be found at the bottom of this page:
+;; http://www.cs.nyu.edu/courses/fall13/CSCI-GA.1133-001/HW/game-of-life.html
 (defn -main
-  [& args]
+  [target & args]
   (run
-   (convert-board startboard)
+   (convert-board (slurp target))
    )
   )
