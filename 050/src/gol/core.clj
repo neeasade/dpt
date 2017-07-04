@@ -108,22 +108,16 @@
      (for [row board]
        ; apply to not get lazy seq signature back as string
        (apply str
-         (for [cell row] (if cell "x" " "))
+        (for [cell row] (if cell "█" " "))
         )))))
 
 (defn get-next-board
-[board]
-  (into
-   []
-   (for [x (range 0 (count board))]
-     (into
-      []
-      (for [y (range 0 (count (nth board 0)))]
-        (get-next-state x y board)
-        )
-      )
-     )
-   )
+  [board]
+  (into []
+  (for [x (range 0 (count board))]
+    (mapv
+     #(get-next-state x % board)
+     (range 0 (count (nth board 0))))))
   )
 
 (defn step [board]
@@ -134,8 +128,17 @@
   (get-next-board board)
   )
 
-(defn run [board]
-  (recur (step board))
+(defn run [board accum]
+  (recur
+   (step
+    (if (= 0 (mod accum 8))
+      (size-board board)
+        ;board
+      board
+      )
+    )
+   (inc accum)
+   )
   )
 
 (def cli-options
@@ -144,7 +147,7 @@
    :default "default.map"]
 
    ["-i" "--interval INTERVAL" "Sleep interval between generations (in milliseconds)"
-    :default 250
+    :default 1
     :parse-fn #(Integer/parseInt %)]
 
    ["-s" "--survive SURVIVE_COUNT" "valid numbers for survival"
@@ -197,7 +200,7 @@
           (print-board-stats (size-board board))
           )
 
-        (run (size-board (convert-board (slurp (:file options)))))
+        (run (size-board (convert-board (slurp (:file options)))) 0)
         )
       )
     )
