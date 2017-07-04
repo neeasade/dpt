@@ -45,8 +45,8 @@
 
       ; width
     (let [board (if (< board-width term-width)
-                    (map #(into % (vec (boolean-array (- term-width board-width)))) board)
-                  (map #(drop-last (- board-width term-width) %) board)
+                    (mapv #(into % (vec (boolean-array (- term-width board-width)))) board)
+                  (mapv #(drop-last (- board-width term-width) %) board)
                 )
           board-height (count board)
           board-width (count (nth board 0))
@@ -130,7 +130,7 @@
   (print (str (char 27) "[2J")) ; clear screen
   (print (str (char 27) "[;H")) ; move cursor to the top left corner of the screen
   (render-board board)
-  ;(Thread/sleep interval)
+  (Thread/sleep interval)
   (get-next-board board)
   )
 
