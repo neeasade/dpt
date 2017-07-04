@@ -1,5 +1,7 @@
 (ns gol.core
-  (:require [clojure.tools.cli :refer [parse-opts]])
+  (:require [clojure.tools.cli :refer [parse-opts]]
+            [clojure.math.combinatorics :as combo]
+            [clojure.string :as str])
   (:gen-class))
 
 ; globals (defaults handled by args)
@@ -13,8 +15,8 @@
   (vec
    (map (fn [instring] (vec (into [] (map #(not= \. %) instring))))
         (filter not-empty
-                (map clojure.string/trim
-                     (clojure.string/split input #"\n|\r\n")
+                (map str/trim
+                     (str/split input #"\n|\r\n")
                      )
                 )
         )
@@ -24,17 +26,13 @@
 (defn get-surrounding-cells
   "return the surrounding cells from x y"
   [x y]
-  [
-   [ (dec x) (dec y) ]
-   [ (dec x)  y ]
-   [ (dec x) (inc y) ]
-   [      x  (dec y)]
-   [      x  (inc y)]
-   [ (inc x) (dec y)]
-   [ (inc x)  y]
-   [ (inc x) (inc y)]
-   ]
-  )
+  (for [dx [-1 0 1]
+        dy [-1 0 1]
+        :when (not= 0 dx dy)]
+    [
+     (+ dx x)
+     (+ dy y)
+     ]))
 
 (defn get-cell-state
   "get true/false in map - treat off map as false"
@@ -57,24 +55,22 @@
 
 (defn get-next-state
   "get the next state"
-  [x y alive board]
-  (some #(= (count-live-neighbors x y board) %)
-        (if alive survive born)
-        )
+  [x y board]
+  (let [alive (get-cell-state x y board)]
+    (some #(= (count-live-neighbors x y board) %)
+          (if alive survive born)
+          )
+    )
   )
 
 (defn render-board [board]
   (println
-  (clojure.string/join "\n"
-        (for [row board]
-          ; apply to not get lazy seq signature back as string
-          (apply str
-               (for [cell row] (if cell "x" " "))
-               )
-          )
-       )
-  )
-  )
+   (str/join "\n"
+     (for [row board]
+       ; apply to not get lazy seq signature back as string
+       (apply str
+         (for [cell row] (if cell "x" " "))
+        )))))
 
 (defn get-next-board
 [board]
@@ -84,7 +80,7 @@
      (into
       []
       (for [y (range 0 (count (nth board 0)))]
-        (get-next-state x y (get (get board x) y)  board)
+        (get-next-state x y board)
         )
       )
      )
