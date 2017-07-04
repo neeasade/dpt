@@ -14,12 +14,7 @@
    (map (fn [instring] (vec (into [] (map #(not= \. %) instring))))
         (filter not-empty
                 (map clojure.string/trim
-                     (clojure.string/split
-                      (clojure.string/replace
-                       input
-                       #"\r\n" "\n"
-                       )
-                      #"\n")
+                     (clojure.string/split input #"\n|\r\n")
                      )
                 )
         )
