@@ -1,6 +1,7 @@
 (ns gol.core
   (:require [clojure.tools.cli :refer [parse-opts]]
             [clojure.math.combinatorics :as combo]
+            [clojure.java.shell :as shell]
             [clojure.string :as str])
   (:gen-class))
 
@@ -21,6 +22,44 @@
                 )
         )
    )
+  )
+
+(defn tput
+  "return tput output as int"
+  [arg]
+  (Integer/parseInt
+   (last
+    (re-find (re-pattern (apply str (concat arg " (\\d+)" )))
+             (:out (shell/sh "/bin/sh" "-c" "stty -a < /dev/tty"))
+             )
+    )
+   )
+  )
+
+(defn size-board
+  "resize the board to match terminal."
+  [board]
+  (let [board-width (count (nth board 0))
+        term-width (tput "columns")
+        ]
+
+      ; width
+    (let [board (if (< board-width term-width)
+                    (map #(into % (vec (boolean-array (- term-width board-width)))) board)
+                  (map #(drop-last (- board-width term-width) %) board)
+                )
+          board-height (count board)
+          board-width (count (nth board 0))
+          term-height (tput "rows")
+          ]
+
+        ; height
+        (if (< board-height term-height)
+          (into board (for [to-add (range 0 (- term-height board-height))] (vec (boolean-array board-width))))
+          (drop-last (- board-height term-height) board)
+        )
+      )
+    )
   )
 
 (defn get-surrounding-cells
@@ -91,7 +130,7 @@
   (print (str (char 27) "[2J")) ; clear screen
   (print (str (char 27) "[;H")) ; move cursor to the top left corner of the screen
   (render-board board)
-  (Thread/sleep interval)
+  ;(Thread/sleep interval)
   (get-next-board board)
   )
 
@@ -105,7 +144,7 @@
    :default "default.map"]
 
    ["-i" "--interval INTERVAL" "Sleep interval between generations (in milliseconds)"
-    :default 500
+    :default 250
     :parse-fn #(Integer/parseInt %)]
 
    ["-s" "--survive SURVIVE_COUNT" "valid numbers for survival"
@@ -125,6 +164,17 @@
   (into [] (map #(Integer/parseInt (str %)) input))
   )
 
+(defn print-board-stats
+  [board]
+  (let [
+        board-height (count board)
+        board-width (count (nth board 0))
+        ]
+    (println board-height)
+    (println board-width)
+    )
+  )
+
 ;; some good example inputs can be found at the bottom of this page:
 ;; http://www.cs.nyu.edu/courses/fall13/CSCI-GA.1133-001/HW/game-of-life.html
 (defn -main
@@ -142,7 +192,12 @@
         (def survive (numberstring-to-vector (:survive options)))
         (def born (numberstring-to-vector (:born options)))
 
-        (run (convert-board (slurp (:file options))))
+        #_(let [board (convert-board (slurp (:file options)))]
+          (print-board-stats board)
+          (print-board-stats (size-board board))
+          )
+
+        (run (size-board (convert-board (slurp (:file options)))))
         )
       )
     )
